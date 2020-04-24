@@ -12,6 +12,9 @@ function PizzaForm({
     <form onSubmit={onSubmit}>
       <h1>Pizza Form</h1>
       {/* ---------------- Erros --------------------*/}
+      <div>
+        <h1>{errors.username}</h1>
+      </div>
       <h4>User Name</h4>
       <label>
         <input

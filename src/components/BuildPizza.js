@@ -36,6 +36,10 @@ const initialFormValues = {
 };
 
 //----------------------initial Errors----------------------------
+const initialFormErrors = {
+  username: '',
+  sizes: '',
+};
 
 //------------------------Yup Errors-------------------------------
 const formSchema = yup.object().shape({
@@ -43,6 +47,9 @@ const formSchema = yup.object().shape({
     .string()
     .min(3, 'Username must have at least 3 characters!')
     .required('Username is required!'),
+  sizes: yup.string(),
+
+  information: yup.string(),
 });
 
 function BuildPizza() {
@@ -51,7 +58,19 @@ function BuildPizza() {
   const [formValues, setFormValues] = useState(initialFormValues);
 
   // const [formDisabled, setFormDisabled] = useState(true);
-  // const [formErrors, setFormErrors] = useState(initialFormErrors);
+  const [formErrors, setFormErrors] = useState(initialFormErrors);
+
+  const postPizza = pizza => {
+    // minus id
+    axios
+      .post(url, pizza)
+      .then(res => {
+        setPizzas([res.data, ...pizzas]);
+      })
+      .catch(err => {
+        debugger;
+      });
+  };
 
   //------------------Handlers------------------------------------
   const onInputChange = evt => {
@@ -60,25 +79,25 @@ function BuildPizza() {
     const value = evt.target.value;
 
     //Yup Validator for username----------
-    // yup
-    //   .reach(formSchema, name)
-    //   .validate(value)
-    //   .then(valid => {
-    //     //Validates
-    //     //Clear Error
-    //     setFormErrors({
-    //       ...formErrors,
-    //       [name]: '',
-    //     });
-    //   })
-    //   .catch(err => {
-    //     //not validate
-    //     //SET THE ERROR IN THE RIGHT PLACE
-    //     setFormErrors({
-    //       ...formErrors,
-    //       [name]: err.errors[0],
-    //     });
-    //   });
+    yup
+      .reach(formSchema, name)
+      .validate(value)
+      .then(valid => {
+        //Validates
+        //Clear Error
+        setFormErrors({
+          ...formErrors,
+          [name]: '',
+        });
+      })
+      .catch(err => {
+        //not validate
+        //SET THE ERROR IN THE RIGHT PLACE
+        setFormErrors({
+          ...formErrors,
+          [name]: err.errors[0],
+        });
+      });
 
     setFormValues({
       ...formValues,
@@ -102,17 +121,27 @@ function BuildPizza() {
   const onSubmit = evt => {
     evt.preventDefault();
 
-    axios
-      .post(url, formValues)
-      .then(res => {
-        console.log(res.data);
-        setPizzas([...pizzas, res.data]);
-        console.log('helloo', pizzas);
-      })
-      .catch(err => {
-        console.log(err);
-      });
+    const newPizza = {
+      username: formValues.username,
+      info: formValues.info,
+      sizes: formValues.sizes,
+      toppings: Object.keys(formValues.toppings).filter(
+        topping => formValues.toppings[topping] === true
+      ),
+    };
 
+    // axios
+    //   .post(url, formValues)
+    //   .then(res => {
+    //     console.log(res.data);
+    //     setPizzas([...pizzas, res.data]);
+    //     console.log('helloo', pizzas);
+    //   })
+    //   .catch(err => {
+    //     console.log(err);
+    //   });
+
+    postPizza(newPizza);
     setFormValues(initialFormValues);
   };
 
@@ -124,9 +153,10 @@ function BuildPizza() {
         onInputChange={onInputChange}
         onCheckboxChange={onCheckboxChange}
         onSubmit={onSubmit}
+        errors={formErrors}
       />
       {pizzas.map(pizza => {
-        return <PizzaCard key={pizza.id} details={pizza} />;
+        return <PizzaCard key={pizza.id} details={pizza} values={formValues} />;
       })}
     </div>
   );
